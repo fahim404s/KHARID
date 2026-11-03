@@ -1,0 +1,22 @@
+{
+  "id": "./",
+  "name": "لیست خرید تصویری",
+  "short_name": "لیست خرید",
+  "description": "انتخاب کالا با عکس و ساخت لیست خرید",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f7f5",
+  "theme_color": "#176b57",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
