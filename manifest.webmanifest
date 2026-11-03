@@ -11,12 +11,5 @@
   "orientation": "portrait",
   "background_color": "#f4f7f5",
   "theme_color": "#176b57",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]
 }

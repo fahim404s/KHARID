@@ -100,6 +100,24 @@ header{padding-top:max(12px,env(safe-area-inset-top))}
  nav button{font-size:11px}
 }
 
+
+/* Android mobile refinements */
+@media(max-width:600px){
+ body{font-size:14px}
+ header{padding-left:10px;padding-right:10px}
+ nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+ nav button{min-height:46px}
+ #grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .product{min-height:0}
+ .product img{width:100%;height:auto;object-fit:contain;background:#f0f3f1}
+ input,select{font-size:16px}
+ .formactions{display:grid;grid-template-columns:1fr 1fr}
+}
+@media(max-width:380px){
+ #grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ nav{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
 </style>
 </head>
 <body>
@@ -151,7 +169,7 @@ header{padding-top:max(12px,env(safe-area-inset-top))}
 <footer>اطلاعات این برنامه به‌صورت محلی در همین مرورگر ذخیره می‌شود. برای جلوگیری از ازدست‌رفتن اطلاعات، هر چند وقت یک‌بار فایل پشتیبان بگیرید. عکس‌های لینک‌دار برای نمایش به اینترنت نیاز دارند.</footer>
 <div id="notice"></div>
 <script>
-const DB_NAME='visual-shopping-db', STORE='items';
+const DB_NAME='visual-shopping-db', STORE='items', MAX_ITEMS=500;
 let db, items=[], shopping={}, editingId=null;
 const $=id=>document.getElementById(id);
 const fa=n=>Number(n).toLocaleString('fa-IR');
@@ -169,7 +187,7 @@ function renderCategories(){const cats=[...new Set(items.map(x=>x.category).filt
 function renderGrid(){
  const q=$('search').value.trim().toLowerCase(),cat=$('categoryFilter').value;
  const filtered=items.filter(x=>(!cat||x.category===cat)&&(!q||(x.name+' '+x.category).toLowerCase().includes(q)));
- $('productCount').textContent=`${fa(filtered.length)} از ${fa(items.length)} کالا`;$('capacityCount').textContent=`ظرفیت ${fa(items.length)} / ۵۰۰`;
+ $('productCount').textContent=`${fa(filtered.length)} از ${fa(items.length)} کالا`;$('capacityCount').textContent=`ظرفیت ${fa(items.length)} / ${fa(MAX_ITEMS)}`;
  $('grid').innerHTML=filtered.length?filtered.map(x=>{const n=shopping[x.id]?.qty||0;return `<article class="product ${n?'selected':''}" data-id="${x.id}" title="برای افزودن به لیست خرید کلیک کنید"><img loading="lazy" src="${escapeHtml(imgSrc(x))}" onerror="this.style.visibility='hidden';this.insertAdjacentHTML('afterend','<div style=&quot;aspect-ratio:1;background:#edf1ef;border-radius:9px;display:grid;place-items:center;color:#748078;font-size:12px&quot;>بدون عکس</div>')"><div class="name">${escapeHtml(x.name)}</div><div class="meta"><span>${escapeHtml(x.category||'بدون دسته')}</span><span>${n?'در لیست: '+fa(n):'＋ افزودن'}</span></div>${n?`<span class="count">${fa(n)}</span>`:''}</article>`}).join(''):'<div class="empty">کالایی پیدا نشد. از «افزودن کالا» استفاده کنید.</div>';
  $('grid').querySelectorAll('.product').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.id;if(!shopping[id])shopping[id]={qty:1,done:false};else shopping[id].qty++;saveShopping();renderGrid();toast('به لیست خرید اضافه شد')}));
 }
@@ -182,14 +200,14 @@ function renderList(){
  $('shoppingList').querySelectorAll('[data-remove]').forEach(e=>e.onclick=()=>{delete shopping[e.dataset.remove];saveShopping();renderList()});
 }
 function renderManage(){
- $('manageCount').textContent=`${fa(items.length)} از ۵۰۰ کالا`;
+ $('manageCount').textContent=`${fa(items.length)} از ${fa(MAX_ITEMS)} کالا`;
  $('manageItems').innerHTML=items.length?items.map(x=>`<div class="listrow"><img src="${escapeHtml(imgSrc(x))}" onerror="this.style.visibility='hidden'"><div class="info"><strong>${escapeHtml(x.name)}</strong><small>${escapeHtml(x.category||'بدون دسته')}</small></div><button class="soft" data-edit="${x.id}">ویرایش</button><button class="danger" data-del="${x.id}">حذف</button></div>`).join(''):'<div class="empty">هنوز کالایی اضافه نشده است.</div>';
  $('manageItems').querySelectorAll('[data-edit]').forEach(e=>e.onclick=()=>editItem(e.dataset.edit));
  $('manageItems').querySelectorAll('[data-del]').forEach(e=>e.onclick=async()=>{if(confirm('این کالا حذف شود؟')){await deleteItem(e.dataset.del);delete shopping[e.dataset.del];saveShopping();await refresh();toast('کالا حذف شد')}});
 }
 function resetForm(){editingId=null;$('itemForm').reset();$('formTitle').textContent='افزودن کالای جدید'}
 function editItem(id){const x=items.find(i=>i.id===id);if(!x)return;editingId=id;$('itemName').value=x.name;$('itemCategory').value=x.category||'';$('itemUrl').value=x.imageUrl||'';$('formTitle').textContent='ویرایش کالا';window.scrollTo({top:0,behavior:'smooth'})}
-$('itemForm').onsubmit=async e=>{e.preventDefault();const name=$('itemName').value.trim();if(!name)return;if(!editingId && items.length>=500){toast('ظرفیت ۵۰۰ کالا تکمیل شده است');return}const file=$('itemFile').files[0];let imageData=editingId?(items.find(x=>x.id===editingId)?.imageData||''):'';if(file){if(!file.type.startsWith('image/')){toast('لطفاً فایل تصویری انتخاب کنید');return}imageData=await fileToDataURL(file)}
+$('itemForm').onsubmit=async e=>{e.preventDefault();const name=$('itemName').value.trim();if(!name)return;if(!editingId && items.length>=MAX_ITEMS){toast('ظرفیت ۵۰۰ کالا تکمیل شده است');return}const file=$('itemFile').files[0];let imageData=editingId?(items.find(x=>x.id===editingId)?.imageData||''):'';if(file){if(!file.type.startsWith('image/')){toast('لطفاً فایل تصویری انتخاب کنید');return}imageData=await fileToDataURL(file)}
  const old=items.find(x=>x.id===editingId);const item={id:editingId||crypto.randomUUID(),name,category:$('itemCategory').value.trim(),imageUrl:$('itemUrl').value.trim(),imageData};await putItem(item);resetForm();await refresh();showPage('managePage');toast(old?'کالا ویرایش شد':'کالا اضافه شد')};
 function fileToDataURL(file){return new Promise((resolve,reject)=>{
  const reader=new FileReader();reader.onerror=reject;
@@ -208,7 +226,7 @@ $('tileSize').onchange=()=>document.documentElement.style.setProperty('--tile',$
 $('clearList').onclick=()=>{if(confirm('تمام لیست خرید پاک شود؟')){shopping={};saveShopping();renderList();renderGrid()}};
 $('copyList').onclick=async()=>{const lines=items.filter(x=>shopping[x.id]?.qty>0).map(x=>`${x.name} — ${shopping[x.id].qty}`);if(!lines.length){toast('لیست خرید خالی است');return}try{await navigator.clipboard.writeText('لیست خرید\n'+lines.join('\n'));toast('لیست کپی شد')}catch{toast('کپی در این مرورگر در دسترس نیست')}};
 $('exportData').onclick=async()=>{const data={version:1,items,shopping};const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shopping-backup.json';a.click();URL.revokeObjectURL(a.href)};
-$('importData').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.items))throw Error();for(const item of data.items)await putItem(item);shopping={...shopping,...(data.shopping||{})};saveShopping();await refresh();toast('پشتیبان بازیابی شد')}catch{toast('فایل پشتیبان معتبر نیست')}e.target.value=''};
+$('importData').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.items))throw Error();if(data.items.length>MAX_ITEMS){toast('فایل پشتیبان بیش از ۵۰۰ کالا دارد');return}for(const item of data.items)await putItem(item);shopping={...shopping,...(data.shopping||{})};saveShopping();await refresh();toast('پشتیبان بازیابی شد')}catch{toast('فایل پشتیبان معتبر نیست')}e.target.value=''};
 
 let installPrompt=null;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e;$('installApp').classList.remove('hidden')});
