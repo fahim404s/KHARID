@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176b57">
+<title>لیست خرید تصویری</title>
+<style>
+:root{--green:#176b57;--bg:#f4f7f5;--card:#fff;--text:#17231f;--muted:#64736d;--line:#dce6e1;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif}
+header{background:var(--green);color:#fff;padding:18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 2px 8px #0002}
+.head{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-size:20px;margin:0 0 5px}.sub{font-size:12px;opacity:.88}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{border:0;border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer}
+nav button{background:#ffffff20;color:white}nav button.active{background:white;color:var(--green);font-weight:bold}
+main{max-width:1200px;margin:18px auto;padding:0 14px}
+.toolbar,.panel,.product,.listrow{background:var(--card);border:1px solid var(--line);border-radius:14px}
+.toolbar{padding:12px;display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+input,select{font:inherit;padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff;min-width:0}
+#search{flex:1;min-width:180px}.primary{background:var(--green);color:#fff}.soft{background:#e8f2ee;color:var(--green)}.danger{background:#fff0ef;color:var(--red)}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile,145px),1fr));gap:12px}
+.product{padding:9px;position:relative;cursor:pointer;transition:.15s;min-width:0}
+.product:hover{border-color:var(--green);transform:translateY(-2px)}
+.product.selected{outline:2px solid var(--green);background:#f0faf5}
+.product img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px;background:#edf1ef;display:block}
+.product .name{font-weight:bold;font-size:14px;margin:8px 2px 4px;overflow-wrap:anywhere}
+.product .meta{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;gap:4px}
+.count{position:absolute;top:14px;left:14px;background:var(--green);color:#fff;border-radius:20px;padding:4px 8px;font-size:12px}
+.actions{display:flex;gap:6px;margin-top:8px}.actions button{padding:6px 8px;font-size:12px;flex:1}
+.panel{padding:14px;margin-bottom:14px}.hidden{display:none!important}
+.sectiontitle{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:8px 0 14px}
+h2{font-size:18px;margin:0}.muted{color:var(--muted);font-size:12px}
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.formgrid label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+.formgrid input,.formgrid select{width:100%}
+.formactions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#shoppingList{display:grid;gap:8px}
+.listrow{padding:10px;display:flex;align-items:center;gap:10px}
+.listrow img{width:58px;height:58px;object-fit:cover;border-radius:8px;background:#eee}
+.listrow .info{flex:1;min-width:0}.listrow strong{display:block;margin-bottom:5px}.listrow small{color:var(--muted)}
+.listrow.done{opacity:.55}.listrow.done strong{text-decoration:line-through}
+.qty{display:flex;align-items:center;gap:6px}.qty button{padding:6px 10px;background:#edf4f0;color:var(--green)}
+.empty{text-align:center;color:var(--muted);padding:40px 10px;border:1px dashed var(--line);border-radius:14px}
+footer{max-width:1200px;margin:20px auto;padding:0 14px 25px;color:var(--muted);font-size:11px;line-height:1.8}
+#notice{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1d3029;color:#fff;padding:10px 16px;border-radius:20px;display:none;z-index:10;font-size:13px}
+@media(max-width:550px){header{position:static}.head{align-items:flex-start}nav{width:100%}nav button{flex:1}#grid{grid-template-columns:repeat(auto-fill,minmax(var(--tile,112px),1fr));gap:8px}.product{padding:7px}.toolbar>*{width:100%}.listrow{gap:7px}.qty button{padding:6px 8px}}
+</style>
+</head>
+<body>
+<header><div class="head">
+ <div><h1>لیست خرید تصویری</h1><div class="sub">روی عکس کالا بزنید تا به لیست خرید اضافه شود</div></div>
+ <nav><button id="tabProducts" class="active">کالاها</button><button id="tabList">لیست خرید <span id="listCount">۰</span></button><button id="tabManage">مدیریت عکس‌ها</button></nav>
+</div></header>
+<main>
+<section id="productsPage">
+ <div class="toolbar">
+  <input id="search" placeholder="جستجوی کالا..." aria-label="جستجو">
+  <select id="categoryFilter"><option value="">همه دسته‌ها</option></select>
+  <label class="muted">اندازه عکس
+   <select id="tileSize"><option value="105">کوچک</option><option value="145" selected>متوسط</option><option value="205">بزرگ</option></select>
+  </label>
+  <button class="soft" id="openAdd">+ افزودن کالا</button>
+ </div>
+ <div class="sectiontitle"><h2>همه کالاها</h2><span class="muted" id="productCount"></span></div>
+ <div id="grid"></div>
+</section>
+<section id="listPage" class="hidden">
+ <div class="sectiontitle"><h2>لیست خرید شما</h2><div><button class="soft" id="copyList">کپی لیست</button> <button class="danger" id="clearList">پاک کردن لیست</button></div></div>
+ <div class="panel muted">برای تغییر تعداد از دکمه‌های + و − استفاده کنید. پس از خرید، مربع کنار کالا را علامت بزنید.</div>
+ <div id="shoppingList"></div>
+</section>
+<section id="managePage" class="hidden">
+ <div class="sectiontitle"><h2 id="formTitle">افزودن کالای جدید</h2><span class="muted">می‌توانید عکس را از دستگاه انتخاب کنید یا لینک عکس بدهید.</span></div>
+ <div class="panel">
+  <form id="itemForm">
+   <div class="formgrid">
+    <label>نام کالا<input id="itemName" required maxlength="80" placeholder="مثلاً شیر"></label>
+    <label>دسته‌بندی<input id="itemCategory" list="categories" placeholder="مثلاً لبنیات"><datalist id="categories"><option>میوه و سبزی</option><option>لبنیات</option><option>گوشت و پروتئین</option><option>نان و غلات</option><option>نوشیدنی</option><option>بهداشتی</option><option>لوازم خانه</option><option>سایر</option></datalist></label>
+    <label>لینک عکس (اختیاری)<input id="itemUrl" type="url" placeholder="https://..."></label>
+    <label>انتخاب عکس از دستگاه (اختیاری)<input id="itemFile" type="file" accept="image/*"></label>
+   </div>
+   <div class="formactions"><button class="primary" type="submit">ذخیره کالا</button><button type="button" class="soft" id="cancelEdit">انصراف</button></div>
+   <p class="muted">اگر هم لینک و هم فایل عکس انتخاب شود، عکس انتخاب‌شده از دستگاه اولویت دارد.</p>
+  </form>
+ </div>
+ <div class="sectiontitle"><h2>مدیریت کالاها</h2><span class="muted" id="manageCount"></span></div>
+ <div id="manageItems"></div>
+ <div class="panel">
+  <strong>پشتیبان‌گیری</strong>
+  <p class="muted">برای انتقال کالاها به دستگاه دیگر، از فایل پشتیبان استفاده کنید. عکس‌های بارگذاری‌شده نیز در پشتیبان قرار می‌گیرند.</p>
+  <div class="formactions"><button class="soft" id="exportData">دانلود فایل پشتیبان</button><label class="btn soft">بازیابی پشتیبان<input id="importData" type="file" accept="application/json" hidden></label></div>
+ </div>
+</section>
+</main>
+<footer>اطلاعات این برنامه به‌صورت محلی در همین مرورگر ذخیره می‌شود. برای جلوگیری از ازدست‌رفتن اطلاعات، هر چند وقت یک‌بار فایل پشتیبان بگیرید. عکس‌های لینک‌دار برای نمایش به اینترنت نیاز دارند.</footer>
+<div id="notice"></div>
+<script>
+const DB_NAME='visual-shopping-db', STORE='items';
+let db, items=[], shopping={}, editingId=null;
+const $=id=>document.getElementById(id);
+const fa=n=>Number(n).toLocaleString('fa-IR');
+function toast(msg){$('notice').textContent=msg;$('notice').style.display='block';setTimeout(()=>$('notice').style.display='none',2300)}
+function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function allItems(){return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function putItem(item){return new Promise((resolve,reject)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).put(item);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}
+function deleteItem(id){return new Promise((resolve,reject)=>{const r=db.transaction(STORE,'readwrite').objectStore(STORE).delete(id);r.onsuccess=resolve;r.onerror=()=>reject(r.error)})}
+function saveShopping(){localStorage.setItem('visual-shopping-list',JSON.stringify(shopping));updateCount()}
+function updateCount(){$('listCount').textContent=fa(Object.values(shopping).filter(x=>x.qty>0).length)}
+function imgSrc(item){return item.imageData||item.imageUrl||''}
+function escapeHtml(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function showPage(page){['productsPage','listPage','managePage'].forEach(id=>$(id).classList.toggle('hidden',id!==page));[['tabProducts','productsPage'],['tabList','listPage'],['tabManage','managePage']].forEach(([b,p])=>$(b).classList.toggle('active',p===page));if(page==='listPage')renderList();if(page==='managePage')renderManage()}
+function renderCategories(){const cats=[...new Set(items.map(x=>x.category).filter(Boolean))].sort();$('categoryFilter').innerHTML='<option value="">همه دسته‌ها</option>'+cats.map(c=>`<option>${escapeHtml(c)}</option>`).join('')}
+function renderGrid(){
+ const q=$('search').value.trim().toLowerCase(),cat=$('categoryFilter').value;
+ const filtered=items.filter(x=>(!cat||x.category===cat)&&(!q||(x.name+' '+x.category).toLowerCase().includes(q)));
+ $('productCount').textContent=`${fa(filtered.length)} از ${fa(items.length)} کالا`;
+ $('grid').innerHTML=filtered.length?filtered.map(x=>{const n=shopping[x.id]?.qty||0;return `<article class="product ${n?'selected':''}" data-id="${x.id}" title="برای افزودن به لیست خرید کلیک کنید"><img loading="lazy" src="${escapeHtml(imgSrc(x))}" onerror="this.style.visibility='hidden';this.insertAdjacentHTML('afterend','<div style=&quot;aspect-ratio:1;background:#edf1ef;border-radius:9px;display:grid;place-items:center;color:#748078;font-size:12px&quot;>بدون عکس</div>')"><div class="name">${escapeHtml(x.name)}</div><div class="meta"><span>${escapeHtml(x.category||'بدون دسته')}</span><span>${n?'در لیست: '+fa(n):'＋ افزودن'}</span></div>${n?`<span class="count">${fa(n)}</span>`:''}</article>`}).join(''):'<div class="empty">کالایی پیدا نشد. از «افزودن کالا» استفاده کنید.</div>';
+ $('grid').querySelectorAll('.product').forEach(el=>el.addEventListener('click',()=>{const id=el.dataset.id;if(!shopping[id])shopping[id]={qty:1,done:false};else shopping[id].qty++;saveShopping();renderGrid();toast('به لیست خرید اضافه شد')}));
+}
+function renderList(){
+ const entries=items.filter(x=>shopping[x.id]?.qty>0);
+ $('shoppingList').innerHTML=entries.length?entries.map(x=>{const s=shopping[x.id];return `<div class="listrow ${s.done?'done':''}"><input type="checkbox" ${s.done?'checked':''} data-done="${x.id}" aria-label="خریداری شد"><img src="${escapeHtml(imgSrc(x))}" onerror="this.style.visibility='hidden'"><div class="info"><strong>${escapeHtml(x.name)}</strong><small>${escapeHtml(x.category||'')}</small></div><div class="qty"><button data-minus="${x.id}">−</button><b>${fa(s.qty)}</b><button data-plus="${x.id}">+</button></div><button class="danger" data-remove="${x.id}">حذف</button></div>`}).join(''):'<div class="empty">هنوز کالایی انتخاب نکرده‌اید.<br>از بخش «کالاها» روی عکس محصولات بزنید.</div>';
+ $('shoppingList').querySelectorAll('[data-done]').forEach(e=>e.onchange=()=>{shopping[e.dataset.done].done=e.checked;saveShopping();renderList()});
+ $('shoppingList').querySelectorAll('[data-plus]').forEach(e=>e.onclick=()=>{shopping[e.dataset.plus].qty++;saveShopping();renderList()});
+ $('shoppingList').querySelectorAll('[data-minus]').forEach(e=>e.onclick=()=>{let s=shopping[e.dataset.minus];s.qty--;if(s.qty<=0)delete shopping[e.dataset.minus];saveShopping();renderList()});
+ $('shoppingList').querySelectorAll('[data-remove]').forEach(e=>e.onclick=()=>{delete shopping[e.dataset.remove];saveShopping();renderList()});
+}
+function renderManage(){
+ $('manageCount').textContent=`${fa(items.length)} کالا`;
+ $('manageItems').innerHTML=items.length?items.map(x=>`<div class="listrow"><img src="${escapeHtml(imgSrc(x))}" onerror="this.style.visibility='hidden'"><div class="info"><strong>${escapeHtml(x.name)}</strong><small>${escapeHtml(x.category||'بدون دسته')}</small></div><button class="soft" data-edit="${x.id}">ویرایش</button><button class="danger" data-del="${x.id}">حذف</button></div>`).join(''):'<div class="empty">هنوز کالایی اضافه نشده است.</div>';
+ $('manageItems').querySelectorAll('[data-edit]').forEach(e=>e.onclick=()=>editItem(e.dataset.edit));
+ $('manageItems').querySelectorAll('[data-del]').forEach(e=>e.onclick=async()=>{if(confirm('این کالا حذف شود؟')){await deleteItem(e.dataset.del);delete shopping[e.dataset.del];saveShopping();await refresh();toast('کالا حذف شد')}});
+}
+function resetForm(){editingId=null;$('itemForm').reset();$('formTitle').textContent='افزودن کالای جدید'}
+function editItem(id){const x=items.find(i=>i.id===id);if(!x)return;editingId=id;$('itemName').value=x.name;$('itemCategory').value=x.category||'';$('itemUrl').value=x.imageUrl||'';$('formTitle').textContent='ویرایش کالا';window.scrollTo({top:0,behavior:'smooth'})}
+$('itemForm').onsubmit=async e=>{e.preventDefault();const name=$('itemName').value.trim();if(!name)return;const file=$('itemFile').files[0];let imageData=editingId?(items.find(x=>x.id===editingId)?.imageData||''):'';if(file){if(!file.type.startsWith('image/')){toast('لطفاً فایل تصویری انتخاب کنید');return}imageData=await fileToDataURL(file)}
+ const old=items.find(x=>x.id===editingId);const item={id:editingId||crypto.randomUUID(),name,category:$('itemCategory').value.trim(),imageUrl:$('itemUrl').value.trim(),imageData};await putItem(item);resetForm();await refresh();showPage('managePage');toast(old?'کالا ویرایش شد':'کالا اضافه شد')};
+function fileToDataURL(file){return new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)})}
+async function refresh(){items=await allItems();renderCategories();renderGrid();renderManage();updateCount()}
+$('tabProducts').onclick=()=>showPage('productsPage');$('tabList').onclick=()=>showPage('listPage');$('tabManage').onclick=()=>showPage('managePage');
+$('openAdd').onclick=()=>{resetForm();showPage('managePage')};$('cancelEdit').onclick=resetForm;
+$('search').oninput=renderGrid;$('categoryFilter').onchange=renderGrid;
+$('tileSize').onchange=()=>document.documentElement.style.setProperty('--tile',$('tileSize').value+'px');
+$('clearList').onclick=()=>{if(confirm('تمام لیست خرید پاک شود؟')){shopping={};saveShopping();renderList();renderGrid()}};
+$('copyList').onclick=async()=>{const lines=items.filter(x=>shopping[x.id]?.qty>0).map(x=>`${x.name} — ${shopping[x.id].qty}`);if(!lines.length){toast('لیست خرید خالی است');return}try{await navigator.clipboard.writeText('لیست خرید\n'+lines.join('\n'));toast('لیست کپی شد')}catch{toast('کپی در این مرورگر در دسترس نیست')}};
+$('exportData').onclick=async()=>{const data={version:1,items,shopping};const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='shopping-backup.json';a.click();URL.revokeObjectURL(a.href)};
+$('importData').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.items))throw Error();for(const item of data.items)await putItem(item);shopping={...shopping,...(data.shopping||{})};saveShopping();await refresh();toast('پشتیبان بازیابی شد')}catch{toast('فایل پشتیبان معتبر نیست')}e.target.value=''};
+(async()=>{try{db=await openDB();shopping=JSON.parse(localStorage.getItem('visual-shopping-list')||'{}');await refresh();$('tileSize').dispatchEvent(new Event('change'))}catch(err){console.error(err);toast('مرورگر امکان ذخیره‌سازی را فراهم نکرد')}})();
+</script>
+</body></html>
